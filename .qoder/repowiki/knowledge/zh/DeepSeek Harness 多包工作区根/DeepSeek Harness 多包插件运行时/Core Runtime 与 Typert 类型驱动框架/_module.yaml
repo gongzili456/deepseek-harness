@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages/core_runtime
+title: Core Runtime 与 Typert 类型驱动框架
+scope:
+    - packages/core/
+    - packages/typert/
+source_files: []
+depends_on: []
+related_to: []

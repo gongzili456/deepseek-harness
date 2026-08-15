@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages/capability_subagent_workflow_jobs
+title: 子代理、工作流与后台作业三大能力家族
+scope:
+    - packages/subagent/
+    - packages/workflow/
+    - packages/jobs/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages/host_client_sdk

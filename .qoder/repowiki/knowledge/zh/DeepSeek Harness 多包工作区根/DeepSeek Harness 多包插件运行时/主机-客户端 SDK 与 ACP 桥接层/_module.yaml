@@ -1,0 +1,13 @@
+schema_version: 1
+module_path: packages/host_client_sdk
+title: 主机-客户端 SDK 与 ACP 桥接层
+scope:
+    - packages/host/
+    - packages/client/
+    - packages/sdk/
+    - packages/acp/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages/capability_subagent_workflow_jobs
+    - path: packages/platform_integrations

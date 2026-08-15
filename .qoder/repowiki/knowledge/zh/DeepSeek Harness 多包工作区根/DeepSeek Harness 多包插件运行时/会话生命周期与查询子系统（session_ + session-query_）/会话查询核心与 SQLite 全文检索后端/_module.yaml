@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages/session_lifecycle/session_query_core
+title: 会话查询核心与 SQLite 全文检索后端
+scope:
+    - packages/session-query/session-query/
+    - packages/session-query/session-query-sqlite/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages/session_lifecycle/session_query_tool_export

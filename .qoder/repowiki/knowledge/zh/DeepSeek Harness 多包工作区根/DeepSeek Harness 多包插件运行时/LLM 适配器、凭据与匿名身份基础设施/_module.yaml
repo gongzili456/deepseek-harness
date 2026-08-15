@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: packages/llm_identity_credentials
+title: LLM 适配器、凭据与匿名身份基础设施
+scope:
+    - packages/llm/
+    - packages/identity/
+    - packages/credentials/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages/core_runtime/agent_core
+    - path: packages/web_tools

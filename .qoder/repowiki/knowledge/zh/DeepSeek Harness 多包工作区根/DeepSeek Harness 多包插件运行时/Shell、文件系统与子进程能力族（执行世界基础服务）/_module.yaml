@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages/capability_shell_fs
+title: Shell、文件系统与子进程能力族（执行世界基础服务）
+scope:
+    - packages/shell/
+    - packages/fs/
+    - packages/subprocess/
+source_files: []
+depends_on: []
+related_to:
+    - path: native

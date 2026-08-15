@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: packages/web_tools
+title: Web 访问、附件与溢出存储工具集
+scope:
+    - packages/web/
+    - packages/attachment/
+    - packages/spill/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages/llm_identity_credentials
+    - path: packages/storage_backends

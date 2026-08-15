@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: packages
+title: DeepSeek Harness 多包插件运行时
+scope:
+    - packages/
+source_files: []
+depends_on: []
+related_to: []

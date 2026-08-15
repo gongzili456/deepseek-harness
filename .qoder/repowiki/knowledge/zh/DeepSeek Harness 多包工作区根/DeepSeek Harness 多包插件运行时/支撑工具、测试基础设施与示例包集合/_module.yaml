@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages/support_infra
+title: 支撑工具、测试基础设施与示例包集合
+scope:
+    - packages/util/
+    - packages/test-support/
+    - packages/examples/
+    - packages/runtime-diagnostics/
+source_files: []
+depends_on: []
+related_to: []
