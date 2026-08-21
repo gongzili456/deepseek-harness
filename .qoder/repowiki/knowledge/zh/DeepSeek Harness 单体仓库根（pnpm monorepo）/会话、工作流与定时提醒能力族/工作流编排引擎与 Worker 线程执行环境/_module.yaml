@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_session_and_workflow/workflow_orchestration
+title: 工作流编排引擎与 Worker 线程执行环境
+scope:
+    - packages/workflow/workflow/
+    - packages/workflow/workflow-worker-thread/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_agent_features/subagent_coordination
+    - path: packages_session_and_workflow/workflow_tools

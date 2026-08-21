@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_session_and_workflow/session_core
+title: 会话持久化、检查点策略与投影系统
+scope:
+    - packages/session/session-checkpoint-policy/
+    - packages/session/session-persistence/
+    - packages/session/session-projection/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_session_and_workflow/schedule_runtime

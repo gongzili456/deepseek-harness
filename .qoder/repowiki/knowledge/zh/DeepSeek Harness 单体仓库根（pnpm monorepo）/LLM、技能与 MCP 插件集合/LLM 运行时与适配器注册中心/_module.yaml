@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_llm_and_skills/llm_core
+title: LLM 运行时与适配器注册中心
+scope:
+    - packages/llm/llm/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_core_runtime/core_runtime/helpers
+    - path: packages_llm_and_skills/llm_retry_meter
+    - path: packages_session_and_workflow/session_title_providers

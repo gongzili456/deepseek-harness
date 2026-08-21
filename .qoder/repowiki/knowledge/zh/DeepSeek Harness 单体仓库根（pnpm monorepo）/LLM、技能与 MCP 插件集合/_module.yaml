@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages_llm_and_skills
+title: LLM、技能与 MCP 插件集合
+scope:
+    - packages/llm/
+    - packages/skill/
+    - packages/mcp/
+source_files: []
+depends_on: []
+related_to: []

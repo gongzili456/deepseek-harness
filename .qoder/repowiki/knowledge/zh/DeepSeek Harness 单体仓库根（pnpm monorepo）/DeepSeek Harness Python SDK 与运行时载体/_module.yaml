@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: python_sdk
+title: DeepSeek Harness Python SDK 与运行时载体
+scope:
+    - python/sdk/
+    - python/sdk-runtime/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_agent_features/subagent_coordination/transport_adapters

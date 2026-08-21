@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_filesystem_and_shell/terminal_io
+title: 持久 PTY 终端子系统（会话注册、Bash 后端与模型工具）
+scope:
+    - packages/terminal/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_filesystem_and_shell/subprocess_management

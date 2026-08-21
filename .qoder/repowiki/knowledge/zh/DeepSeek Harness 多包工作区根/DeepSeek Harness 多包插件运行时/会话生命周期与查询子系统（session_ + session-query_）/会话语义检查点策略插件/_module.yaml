@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: packages/session_lifecycle/session_checkpoint_policy
-title: 会话语义检查点策略插件
-scope:
-    - packages/session/session-checkpoint-policy/
-source_files: []
-depends_on: []
-related_to:
-    - path: packages/session_lifecycle/session_persistence

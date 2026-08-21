@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_filesystem_and_shell
+title: 运行时资源抽象层（FS/Shell/Subprocess/Terminal）
+scope:
+    - packages/fs/
+    - packages/shell/
+    - packages/subprocess/
+    - packages/terminal/
+source_files: []
+depends_on: []
+related_to: []

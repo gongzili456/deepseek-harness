@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_support_utilities
+title: 共享工具、Typert 类型协议与测试/示例支撑包集合
+scope:
+    - packages/util/
+    - packages/typert/
+    - packages/test-support/
+    - packages/examples/
+source_files: []
+depends_on: []
+related_to: []

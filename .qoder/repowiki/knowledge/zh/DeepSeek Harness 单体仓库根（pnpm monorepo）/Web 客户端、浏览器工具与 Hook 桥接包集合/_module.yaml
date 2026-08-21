@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_client_and_web
+title: Web 客户端、浏览器工具与 Hook 桥接包集合
+scope:
+    - packages/client/
+    - packages/web/
+    - packages/hooks/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_core_runtime/host

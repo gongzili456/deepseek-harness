@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_session_and_workflow/session_features
+title: 会话投影缓存、统计与遥测能力包
+scope:
+    - packages/session/session-projection-cache/
+    - packages/session/session-stats/
+    - packages/session/session-telemetry/
+    - packages/session/session-telemetry-otel/
+source_files: []
+depends_on: []
+related_to: []

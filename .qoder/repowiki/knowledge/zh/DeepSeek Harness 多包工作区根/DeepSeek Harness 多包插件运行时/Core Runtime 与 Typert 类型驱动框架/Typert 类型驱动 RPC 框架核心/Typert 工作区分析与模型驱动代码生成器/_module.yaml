@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: packages/core_runtime/typert/generator
-title: Typert 工作区分析与模型驱动代码生成器
-scope:
-    - packages/typert/generator/
-source_files: []
-depends_on: []
-related_to:
-    - path: packages/core_runtime/typert/loader

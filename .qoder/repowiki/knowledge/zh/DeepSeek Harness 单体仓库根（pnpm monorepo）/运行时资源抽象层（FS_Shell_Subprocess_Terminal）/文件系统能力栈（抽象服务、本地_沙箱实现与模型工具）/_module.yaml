@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_filesystem_and_shell/filesystem
+title: 文件系统能力栈（抽象服务、本地/沙箱实现与模型工具）
+scope:
+    - packages/fs/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_llm_and_skills/skill_registry

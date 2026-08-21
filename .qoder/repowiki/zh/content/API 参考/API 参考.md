@@ -2,15 +2,14 @@
 
 <cite>
 **本文引用的文件**
-- [python/sdk/src/deepseek_harness/__init__.py](file://python/sdk/src/deepseek_harness/__init__.py)
+- [packages/host/apiproxy/src/api/index.ts](file://packages/host/apiproxy/src/api/index.ts)
+- [packages/host/apiproxy/src/api/rpc.ts](file://packages/host/apiproxy/src/api/rpc.ts)
+- [packages/host/apiproxy/src/api/events.ts](file://packages/host/apiproxy/src/api/events.ts)
+- [packages/client/connection/src/index.ts](file://packages/client/connection/src/index.ts)
+- [packages/client/connection/src/api-request-trust.ts](file://packages/client/connection/src/api-request-trust.ts)
 - [python/sdk/src/deepseek_harness/api.py](file://python/sdk/src/deepseek_harness/api.py)
 - [python/sdk/src/deepseek_harness/client.py](file://python/sdk/src/deepseek_harness/client.py)
-- [python/sdk/src/deepseek_harness/models.py](file://python/sdk/src/deepseek_harness/models.py)
-- [python/sdk/src/deepseek_harness/errors.py](file://python/sdk/src/deepseek_harness/errors.py)
-- [python/sdk/README.md](file://python/sdk/README.md)
-- [packages/sdk/client/src/api.ts](file://packages/sdk/client/src/api.ts)
-- [packages/api/gateway/src/index.ts](file://packages/api/gateway/src/index.ts)
-- [packages/api/gateway/src/types.ts](file://packages/api/gateway/src/types.ts)
+- [docs/subsystems/web-server.zh.md](file://docs/subsystems/web-server.zh.md)
 </cite>
 
 ## 目录
@@ -26,393 +25,386 @@
 10. [附录](#附录)
 
 ## 简介
-本参考文档面向 DeepSeek Harness 的 Python SDK 与 TypeScript 客户端，系统化说明公共接口、类型定义、请求/响应格式、错误码与异常、版本兼容与迁移建议、最佳实践与性能优化，并提供完整代码示例与集成模式。Python SDK 通过 JSON-RPC over stdio 驱动本地运行时子进程；TypeScript 客户端提供等价的高层 API，便于在 Node.js 环境中复用相同语义。
+本参考文档面向 DeepSeek Harness 的对外与内部接口，覆盖：
+- 统一 API 契约（四象限 RPC 模型）
+- RESTful HTTP 端点与认证/信任边界
+- WebSocket 下行事件流与升级流程
+- Python SDK 的进程内 JSON-RPC 通信（IPC/stdio）
+- 错误处理、速率限制、安全与版本兼容性建议
+- 常见用例、客户端实现指南与性能优化技巧
 
 ## 项目结构
-- Python SDK（deepseek_harness）：封装运行时子进程的启动、初始化、会话运行、通知订阅与结果聚合。
-- TypeScript SDK 客户端（@deepseek-ai/dsh-sdk-client）：提供与 Python SDK 对等的 DeepSeekHarness/HarnessSession 高层 API。
-- Typert Gateway（@deepseek-ai/dsh-api-gateway）：服务间远程方法调用的网关与错误分类体系。
+DeepSeek Harness 将“逻辑协议”与“物理通道”解耦：同一套四象限消息可在 HTTP POST、WebSocket 文本帧或进程内 SSE 上承载。浏览器侧通过 /api 前缀发起请求，并通过专用路径升级到 WebSocket 接收下行事件；Python SDK 通过子进程 stdio 以 JSON-RPC 方式与运行时交互。
 
 ```mermaid
 graph TB
-A["应用调用方"] --> B["Python SDK<br/>DeepSeekHarness / Session"]
-A --> C["TS 客户端<br/>DeepSeekHarness / HarnessSession"]
-B --> D["JSON-RPC 客户端<br/>HarnessClient"]
-C --> E["JSON-RPC 客户端<br/>HarnessClient"]
-D --> F["运行时子进程<br/>stdio JSON-RPC"]
-E --> F
-F --> G["Agent 核心 / 工具链"]
+subgraph "浏览器/前端"
+UI["Web 客户端"]
+end
+subgraph "主机服务"
+WS["WebSocket 下行<br/>/events/mux, /events/host"]
+HTTP["HTTP /api/* 网关"]
+AP["ApiProxy 契约层"]
+end
+subgraph "Python SDK"
+PYAPI["DeepSeekHarness / Session"]
+PYCLI["HarnessClient (JSON-RPC over stdio)"]
+end
+UI --> |POST /api/<method><br/>四象限 ClientRequest| HTTP
+UI --> |WS 升级| WS
+HTTP --> AP
+WS --> AP
+PYAPI --> PYCLI
+PYCLI < --> |"stdin/stdout JSON-RPC"| 运行时
 ```
 
 图表来源
+- [packages/client/connection/src/index.ts:130-195](file://packages/client/connection/src/index.ts#L130-L195)
+- [packages/host/apiproxy/src/api/index.ts:21-42](file://packages/host/apiproxy/src/api/index.ts#L21-L42)
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
 - [python/sdk/src/deepseek_harness/api.py:48-124](file://python/sdk/src/deepseek_harness/api.py#L48-L124)
 - [python/sdk/src/deepseek_harness/client.py:37-155](file://python/sdk/src/deepseek_harness/client.py#L37-L155)
-- [packages/sdk/client/src/api.ts:22-119](file://packages/sdk/client/src/api.ts#L22-L119)
 
 章节来源
-- [python/sdk/src/deepseek_harness/__init__.py:1-19](file://python/sdk/src/deepseek_harness/__init__.py#L1-L19)
-- [python/sdk/README.md:1-52](file://python/sdk/README.md#L1-L52)
+- [packages/host/apiproxy/src/api/index.ts:1-42](file://packages/host/apiproxy/src/api/index.ts#L1-L42)
+- [packages/client/connection/src/index.ts:130-195](file://packages/client/connection/src/index.ts#L130-L195)
+- [python/sdk/src/deepseek_harness/api.py:48-124](file://python/sdk/src/deepseek_harness/api.py#L48-L124)
+- [python/sdk/src/deepseek_harness/client.py:37-155](file://python/sdk/src/deepseek_harness/client.py#L37-L155)
 
 ## 核心组件
-- Python SDK
-  - DeepSeekHarness：管理运行时子进程生命周期，支持上下文管理器或显式 close；提供 run/start_session。
-  - Session：绑定会话 ID，发送 prompt 并等待整轮空闲，返回 RunResult。
-  - HarnessClient：底层 JSON-RPC 客户端，负责启动子进程、initialize、session/prompt、通知订阅、关闭流程。
-  - 数据模型：Notification、IncomingRequest、ServerInfo、InitializeResponse、RunResult。
-  - 异常：HarnessError、TransportClosedError、SdkProtocolError、JsonRpcError。
-- TypeScript 客户端
-  - DeepSeekHarness：与 Python 端同构的高层入口，异步生命周期管理。
-  - HarnessSession：按会话发送 prompt 并等待 idle，返回 RunResult。
-  - 辅助函数：normalizeInput、finalResponse、validatedSessionEvent、isInboxReceipt。
-- Typert Gateway
-  - TypertGatewayService：基于 Cordis Services 和 Typert 注册表进行远程方法分发、参数校验、上下文解析与返回值解码。
-  - TypertGatewayError：统一的基础设施错误，包含稳定 code、endpoint、field。
-  - 类型契约：InvokeRemoteRequest、TypertGatewayErrorCode、TypertGateway。
+- 统一 API 契约（ApiProxy）：定义领域方法集合（sessions、workspace、settings、credentials、llm、goals、skills、agentPresets、subagents、events、downloads），以及 respond 入口用于回写服务端请求。
+- 四象限 RPC 消息模型：ClientRequest、ServerResponse、ServerRequest、ClientResponse，通过 type 字段区分；rpcId 由发起方生成并贯穿响应。
+- 事件系统（EventsApi）：提供多路复用会话事件流（mux）和主机级事件流（host），包含审批/问答、队列快照、作业清单、投影更新等。
+- 连接与安全：/api 路由受信任主机白名单保护；特权方法强制回环；GET 到事件路径返回 426 要求升级至 WebSocket。
+- Python SDK：封装子进程生命周期、初始化、会话提示、通知订阅与结果聚合。
 
 章节来源
-- [python/sdk/src/deepseek_harness/api.py:13-183](file://python/sdk/src/deepseek_harness/api.py#L13-L183)
-- [python/sdk/src/deepseek_harness/client.py:24-155](file://python/sdk/src/deepseek_harness/client.py#L24-L155)
-- [python/sdk/src/deepseek_harness/models.py:1-33](file://python/sdk/src/deepseek_harness/models.py#L1-L33)
-- [python/sdk/src/deepseek_harness/errors.py:1-24](file://python/sdk/src/deepseek_harness/errors.py#L1-L24)
-- [packages/sdk/client/src/api.ts:22-195](file://packages/sdk/client/src/api.ts#L22-L195)
-- [packages/api/gateway/src/index.ts:90-184](file://packages/api/gateway/src/index.ts#L90-L184)
-- [packages/api/gateway/src/types.ts:1-55](file://packages/api/gateway/src/types.ts#L1-L55)
+- [packages/host/apiproxy/src/api/index.ts:21-42](file://packages/host/apiproxy/src/api/index.ts#L21-L42)
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
+- [packages/host/apiproxy/src/api/events.ts:46-156](file://packages/host/apiproxy/src/api/events.ts#L46-L156)
+- [packages/client/connection/src/index.ts:130-195](file://packages/client/connection/src/index.ts#L130-L195)
+- [python/sdk/src/deepseek_harness/api.py:48-124](file://python/sdk/src/deepseek_harness/api.py#L48-L124)
+- [python/sdk/src/deepseek_harness/client.py:37-155](file://python/sdk/src/deepseek_harness/client.py#L37-L155)
 
 ## 架构总览
-Python SDK 与 TS 客户端均通过 JSON-RPC over stdio 与本地运行时通信。典型调用序列如下：
+下图展示浏览器与主机之间的请求/响应与事件流，以及 Python SDK 的进程内通信。
+
+```mermaid
+sequenceDiagram
+participant B as "浏览器"
+participant H as "HTTP /api 网关"
+participant W as "WebSocket 下行"
+participant A as "ApiProxy"
+participant P as "Python SDK"
+Note over B,H : 上行：POST /api/<method> 携带 ClientRequest
+B->>H : POST /api/sessions.list {type : "client-request", rpcId, method, payload}
+H->>A : 解析并路由
+A-->>H : ServerResponse {ok/value 或 error}
+H-->>B : HTTP 200 + 响应体
+Note over B,W : 下行：GET /events/* 升级为 WebSocket
+B->>W : Upgrade 请求
+W-->>B : 101 Switching Protocols
+W-->>B : ServerRequest{session/event, approval/requested, ...}
+B->>W : ClientResponse{rpcId, result}
+Note over P : Python SDK 通过 stdio JSON-RPC 与运行时交互
+P->>P : initialize/session_prompt/subscribe_notifications
+```
+
+图表来源
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
+- [packages/client/connection/src/index.ts:140-195](file://packages/client/connection/src/index.ts#L140-L195)
+- [python/sdk/src/deepseek_harness/client.py:117-155](file://python/sdk/src/deepseek_harness/client.py#L117-L155)
+
+## 详细组件分析
+
+### 统一 API 契约（ApiProxy 与四象限 RPC）
+- ApiProxy 暴露领域方法集与 respond 入口，新增领域需添加一个文件对与映射表行。
+- 四象限消息：
+  - ClientRequest：客户端发起，HTTP POST 负载
+  - ServerResponse：对应请求的 HTTP 响应体
+  - ServerRequest：服务端发起（审批/问答/事件等），WebSocket 文本帧
+  - ClientResponse：客户端回写服务端请求，POST /api/respond
+- 错误模型：RpcError 使用 code/details 描述业务错误；transportError 将传输异常折叠为 internal 错误。
+
+```mermaid
+classDiagram
+class ApiProxy {
++sessions
++workspace
++settings
++credentials
++llm
++goals
++skills
++agentPresets
++subagents
++events
++downloads
++respond(message) RpcReceipt
+}
+class RpcMessage {
+<<union>>
++ClientRequest
++ServerResponse
++ServerRequest
++ClientResponse
+}
+class RpcResult~T~ {
++ok : true; value : T
++ok : false; error : RpcError
+}
+ApiProxy --> RpcMessage : "使用"
+RpcMessage --> RpcResult : "响应体"
+```
+
+图表来源
+- [packages/host/apiproxy/src/api/index.ts:21-42](file://packages/host/apiproxy/src/api/index.ts#L21-L42)
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
+
+章节来源
+- [packages/host/apiproxy/src/api/index.ts:21-42](file://packages/host/apiproxy/src/api/index.ts#L21-L42)
+- [packages/host/apiproxy/src/api/rpc.ts:31-130](file://packages/host/apiproxy/src/api/rpc.ts#L31-L130)
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
+
+### RESTful API（HTTP）
+- 路径与用途
+  - POST /api/<method>：发送 ClientRequest，method 对应 ApiProxy 中的领域方法（如 session.list、session/prompt、workspace.* 等）。
+  - POST /api/respond：回写服务端请求（ServerRequest）的 ClientResponse，携带原 rpcId。
+  - GET /events/mux、GET /events/host：返回 426 并要求升级到 WebSocket。
+- 认证与信任
+  - 所有 /api 请求经过信任检查：Host 必须为回环或配置 trustedHosts 之一；跨站请求被拒绝。
+  - 特权方法（如 settings.*、credentials.*、llm.discoverModels 等）强制回环访问。
+- 请求/响应模式
+  - 请求体：ClientRequest 四象限对象
+  - 响应体：ServerResponse 四象限对象；HTTP 状态仅描述载体层（例如 426 升级要求）
+- 速率限制
+  - 代码未内置全局速率限制；可通过部署前置代理或上游策略实施。
+
+```mermaid
+flowchart TD
+Start(["收到 /api 请求"]) --> CheckTrust{"是否来自可信 Host？"}
+CheckTrust -- 否 --> Deny["403 Forbidden"]
+CheckTrust -- 是 --> Privileged{"是否特权方法？"}
+Privileged -- 是 --> LoopbackOnly{"是否回环？"}
+LoopbackOnly -- 否 --> Deny
+LoopbackOnly -- 是 --> Route["路由到 ApiProxy"]
+Privileged -- 否 --> Route
+Route --> Envelope{"是否为事件 GET？"}
+Envelope -- 是 --> Upgrade["426 Upgrade Required"]
+Envelope -- 否 --> Handle["执行方法并返回 ServerResponse"]
+```
+
+图表来源
+- [packages/client/connection/src/index.ts:140-195](file://packages/client/connection/src/index.ts#L140-L195)
+- [packages/client/connection/src/api-request-trust.ts:1-28](file://packages/client/connection/src/api-request-trust.ts#L1-L28)
+
+章节来源
+- [packages/client/connection/src/index.ts:130-195](file://packages/client/connection/src/index.ts#L130-L195)
+- [packages/client/connection/src/api-request-trust.ts:1-28](file://packages/client/connection/src/api-request-trust.ts#L1-L28)
+
+### WebSocket API（下行事件流）
+- 升级路径
+  - GET /events/mux、GET /events/host：若未升级则返回 426 并附带 Upgrade 头。
+  - 成功升级后，服务器持续推送 ServerRequest 帧（审批/问答、session/event、队列/作业快照、投影更新等）。
+- 消息格式
+  - 下行：ServerRequest{rpcId, method, payload}
+  - 上行：ClientResponse{rpcId, result}（通过 POST /api/respond）
+- 事件类型（MuxFrame/HostFrame）
+  - MuxFrame：session/event、approval/requested、question/requested、session/queue、session/jobs、session/projection、stream/error 等
+  - HostFrame：host/session-added/removed/status、host/agent-error、host/workspace-*、host/archived-sessions-changed、host/remote-event、stream/error
+- 实时交互模式
+  - 客户端维护 rpcId 关联，对可应答的 ServerRequest 通过 /api/respond 回写结果。
+  - 纯推送事件无需回写。
+
+```mermaid
+sequenceDiagram
+participant C as "客户端"
+participant S as "WebSocket 服务器"
+participant A as "ApiProxy.events"
+C->>S : GET /events/mux (Upgrade)
+S-->>C : 101 Switching Protocols
+loop 事件流
+S-->>C : ServerRequest{session/event | approval/requested | ...}
+alt 需要应答
+C->>S : POST /api/respond {ClientResponse}
+S-->>C : {accepted : true/false}
+else 纯推送
+Note over C,S : 无需回写
+end
+end
+```
+
+图表来源
+- [packages/host/apiproxy/src/api/events.ts:46-156](file://packages/host/apiproxy/src/api/events.ts#L46-L156)
+- [packages/client/connection/src/index.ts:174-195](file://packages/client/connection/src/index.ts#L174-L195)
+
+章节来源
+- [packages/host/apiproxy/src/api/events.ts:46-156](file://packages/host/apiproxy/src/api/events.ts#L46-L156)
+- [packages/client/connection/src/index.ts:174-195](file://packages/client/connection/src/index.ts#L174-L195)
+
+### Socket API（二进制/帧）
+- 本项目 WebSocket 使用文本帧承载四象限 JSON 消息，不定义自定义二进制帧。
+- 如需二进制传输（如大附件），应通过现有 HTTP 下载面或分块上传机制配合业务语义完成。
+
+章节来源
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
+
+### IPC/Pipe 通信（Python SDK）
+- 通信方式：子进程 stdio，逐行 JSON-RPC 2.0 消息。
+- 关键流程
+  - 启动：HarnessClient.start() 拉起运行时进程，读取 stdout/stderr。
+  - 初始化：initialize(cwd, provider, model, maxTokens)。
+  - 会话提示：session_prompt(sessionId, contentBlocks) 返回 messageId。
+  - 通知订阅：subscribe_session_notifications(sessionId) 过滤会话及子代理树事件。
+  - 终止：shutdown 请求后关闭 stdin，等待进程退出。
+- 数据流
+  - 请求：{"jsonrpc":"2.0","id":uuid,"method":"...","params":{...}}
+  - 响应：{"jsonrpc":"2.0","id":uuid,"result":{...}} 或 {"error":{code,message,data}}
+  - 通知：{"jsonrpc":"2.0","method":"...","params":{...}}
+- 进程同步
+  - 关闭顺序：先发送 shutdown，再关闭 stdin，最后 terminate/kill 超时兜底。
 
 ```mermaid
 sequenceDiagram
 participant App as "应用"
-participant Py as "Python SDK<br/>DeepSeekHarness"
-participant Cli as "HarnessClient"
-participant RT as "运行时子进程"
-participant AG as "Agent 核心"
-App->>Py : run(input, session_id?)
-Py->>Cli : start() + initialize(cwd, provider, model, maxTokens?)
-Cli->>RT : 启动子进程 + 握手
-Py->>Cli : session_prompt(session_id, contentBlocks)
-Cli-->>Py : messageId
-Cli-->>Py : 通知流 (session.event, session.status)
-Py-->>App : RunResult(final_response, finish_reason, events, notifications)
+participant SDK as "Python SDK"
+participant RT as "运行时(子进程)"
+App->>SDK : start()
+SDK->>RT : 启动进程
+App->>SDK : initialize(...)
+SDK->>RT : JSON-RPC initialize
+RT-->>SDK : InitializeResponse
+App->>SDK : session_prompt(sessionId, blocks)
+SDK->>RT : JSON-RPC session/prompt
+RT-->>SDK : Notification(session.event, turn/end, ...)
+SDK-->>App : 回调 on_notification / 订阅 next()
+App->>SDK : close()
+SDK->>RT : JSON-RPC shutdown
+SDK->>RT : 关闭 stdin / 等待退出
 ```
 
 图表来源
-- [python/sdk/src/deepseek_harness/api.py:97-124](file://python/sdk/src/deepseek_harness/api.py#L97-L124)
 - [python/sdk/src/deepseek_harness/client.py:63-155](file://python/sdk/src/deepseek_harness/client.py#L63-L155)
-
-## 详细组件分析
-
-### Python SDK 公共接口
-
-#### DeepSeekHarnessConfig
-- 字段
-  - provider: string，默认 deepseek-official
-  - model: string，默认 deepseek-v4-flash
-  - max_tokens: number | undefined，可选每请求输出 token 上限
-  - cwd: string | undefined，工作目录
-  - runtime_cwd: string | undefined，运行时子进程工作目录
-  - session_root: string | undefined，持久化根目录（注入环境变量）
-  - cordis: string | undefined，Cordis 配置文件路径
-  - env: dict[str, str]，子进程环境覆盖
-  - runtime_bin: string | undefined，自定义运行时可执行路径
-  - launch_args_override: tuple[str, ...] | undefined，启动参数覆盖
-  - request_timeout_seconds: float | undefined，请求超时
-  - shutdown_timeout_seconds: float，默认 1.0
-  - base_url: string | undefined，注入 DEEPSEEK_BASE_URL
-  - api_key: string | undefined，注入 DEEPSEEK_API_KEY
+- [python/sdk/src/deepseek_harness/client.py:228-296](file://python/sdk/src/deepseek_harness/client.py#L228-L296)
+- [python/sdk/src/deepseek_harness/client.py:318-397](file://python/sdk/src/deepseek_harness/client.py#L318-L397)
 
 章节来源
-- [python/sdk/src/deepseek_harness/api.py:13-36](file://python/sdk/src/deepseek_harness/api.py#L13-L36)
-
-#### RunResult
-- 字段
-  - session_id: string
-  - final_response: string，最后一个 assistant/message 文本拼接
-  - finish_reason: string | None，最后一个 turn/end 的 kind
-  - events: list[JsonObject]，根会话事件
-  - notifications: list[Notification]，通知列表
-  - session_root: string | None
-
-章节来源
-- [python/sdk/src/deepseek_harness/api.py:38-46](file://python/sdk/src/deepseek_harness/api.py#L38-L46)
-
-#### DeepSeekHarness
-- 关键方法
-  - __init__(config=None, **kwargs)
-  - start(): 启动子进程并 initialize
-  - close(): 关闭子进程
-  - start_session(session_id=None): 创建 Session
-  - run(input, *, session_id=None, on_notification=None): 便捷运行
-- 行为要点
-  - 懒启动，跨多次调用复用子进程
-  - 支持上下文管理器
-  - 将配置项转换为环境变量并传递给 HarnessClient
-
-章节来源
+- [python/sdk/src/deepseek_harness/client.py:63-155](file://python/sdk/src/deepseek_harness/client.py#L63-L155)
+- [python/sdk/src/deepseek_harness/client.py:228-296](file://python/sdk/src/deepseek_harness/client.py#L228-L296)
+- [python/sdk/src/deepseek_harness/client.py:318-397](file://python/sdk/src/deepseek_harness/client.py#L318-L397)
 - [python/sdk/src/deepseek_harness/api.py:48-124](file://python/sdk/src/deepseek_harness/api.py#L48-L124)
 
-#### Session
-- 关键方法
-  - run(input, *, on_notification=None): 发送 prompt，收集通知，等待 idle，返回 RunResult
-- 内部逻辑
-  - 规范化输入为内容块
-  - 订阅会话树通知
-  - 等待收件箱回执后开始收集
-  - 以 session.status=idle 作为活动区间结束标志
-
-章节来源
-- [python/sdk/src/deepseek_harness/api.py:127-183](file://python/sdk/src/deepseek_harness/api.py#L127-L183)
-
-#### HarnessClient
-- 配置 HarnessConfig
-  - runtime_bin, bridge_bin, launch_args_override, cwd, env, request_timeout_seconds, shutdown_timeout_seconds
-- 关键方法
-  - start(): 启动子进程，注入默认配置，启动读写线程
-  - initialize(cwd, provider, model, max_tokens?): 握手
-  - session_prompt(session_id, content_blocks, ...): 发送 prompt，返回 messageId
-  - request(method, params, response_model, ...): 通用请求封装
-  - subscribe_notifications(filter?): 订阅通知
-  - subscribe_session_notifications(session_id): 按会话树过滤订阅
-  - next_notification(), next_request(), respond(), respond_error()
-  - close(): 优雅关闭，带诊断信息
-- 通知订阅 NotificationSubscription
-  - next(), drain(on_notification), close()
-
-章节来源
-- [python/sdk/src/deepseek_harness/client.py:24-558](file://python/sdk/src/deepseek_harness/client.py#L24-L558)
-
-#### 数据模型
-- Notification: { method: string, payload: JsonObject }
-- IncomingRequest: { id: string|int, method: string, payload: JsonObject }
-- ServerInfo: { name?: string, version?: string }
-- InitializeResponse: { serverInfo?: ServerInfo }
-
-章节来源
-- [python/sdk/src/deepseek_harness/models.py:1-33](file://python/sdk/src/deepseek_harness/models.py#L1-L33)
-
-#### 异常类型
-- HarnessError：基础异常
-- TransportClosedError：运行时子进程退出或 stdout 关闭
-- SdkProtocolError：运行时数据违反协议
-- JsonRpcError：JSON-RPC 错误响应，含 code、message、data
-
-章节来源
-- [python/sdk/src/deepseek_harness/errors.py:1-24](file://python/sdk/src/deepseek_harness/errors.py#L1-L24)
-
-### TypeScript 客户端公共接口
-
-#### DeepSeekHarness
-- 构造参数：DeepSeekHarnessOptions（launch、cwd、provider、model、maxTokens）
-- 方法
-  - start(): Promise<void>，启动并握手
-  - session(sessionId?): HarnessSession
-  - run(input, options?): Promise<RunResult>
-  - close(): Promise<void>
-  - [Symbol.asyncDispose]()
-
-章节来源
-- [packages/sdk/client/src/api.ts:22-119](file://packages/sdk/client/src/api.ts#L22-L119)
-
-#### HarnessSession
-- 属性：harness, id
-- 方法
-  - run(input, options?): Promise<RunResult>
-    - 发送 prompt，订阅会话树通知，等待收件箱回执与 idle
-    - 返回 sessionId、finalResponse、events、notifications
-
-章节来源
-- [packages/sdk/client/src/api.ts:132-195](file://packages/sdk/client/src/api.ts#L132-L195)
-
-#### 辅助函数
-- normalizeInput(input): ContentBlock[]
-- finalResponse(events): string
-- validatedSessionEvent(value): SessionEvent
-- isInboxReceipt(value, messageId): boolean
-
-章节来源
-- [packages/sdk/client/src/api.ts:197-247](file://packages/sdk/client/src/api.ts#L197-L247)
-
-### Typert Gateway（服务间远程调用）
-
-#### 类型与接口
-- InvokeRemoteRequest: { namespace, method, args, signal? }
-- TypertGatewayErrorCode: 稳定的失败类别集合
-- TypertGateway: { invoke(request): Promise<unknown> }
-
-章节来源
-- [packages/api/gateway/src/types.ts:1-55](file://packages/api/gateway/src/types.ts#L1-L55)
-
-#### 服务实现
-- TypertGatewayService
-  - 拦截 /api 路由，解析 endpoint，查找严格定义或 SRC 标记
-  - 参数校验、上下文解析、调用业务方法、结果解码
-  - 抛出 TypertGatewayError 表示基础设施/边界失败
-
-章节来源
-- [packages/api/gateway/src/index.ts:90-184](file://packages/api/gateway/src/index.ts#L90-L184)
-
-#### 错误分类
-- TypertGatewayError.code 包括：ambiguous-endpoint、arguments-invalid、binding-invalid、context-failed、context-not-found、context-unavailable、definition-unavailable、input-invalid、invocation-unavailable、lookup-failed、lookup-not-found、lookup-unavailable、method-unavailable、provider-mismatch、result-invalid、service-unavailable、signature-invalid
-
-章节来源
-- [packages/api/gateway/src/types.ts:18-37](file://packages/api/gateway/src/types.ts#L18-L37)
-- [packages/api/gateway/src/index.ts:43-71](file://packages/api/gateway/src/index.ts#L43-L71)
-
 ## 依赖关系分析
-- Python SDK 依赖关系
-  - DeepSeekHarness -> HarnessClient -> 子进程 JSON-RPC
-  - Session 依赖 HarnessClient 的通知订阅与会话树关系追踪
-  - models 提供通用 JSON 类型与消息体
-  - errors 提供结构化异常
-- TypeScript 客户端依赖关系
-  - DeepSeekHarness/HarnessSession 使用内部 HarnessClient 与类型验证
-- Typert Gateway 依赖关系
-  - 基于 Cordis Context/Services 与 Typert 注册表进行反射与分发
+- 连接层依赖 WebServer 注册 /api 前缀与 WebSocket 升级路径，并在插件加载时校验 trustedHosts 与最大请求体大小。
+- ApiProxy 作为契约层无 Node 依赖，可在浏览器导入；实际承载由 fetch/WebSocket/SSE 决定。
+- Python SDK 依赖子进程管理、线程化 I/O、通知订阅与 JSON-RPC 编解码。
 
 ```mermaid
-classDiagram
-class DeepSeekHarness {
-+start()
-+close()
-+run(input, options)
-+start_session(id)
-}
-class Session {
-+run(input, options)
-}
-class HarnessClient {
-+start()
-+initialize(...)
-+session_prompt(...)
-+subscribe_notifications(...)
-+close()
-}
-class NotificationSubscription {
-+next()
-+drain(cb)
-+close()
-}
-class Models {
-<<dataclass>>
-Notification
-IncomingRequest
-ServerInfo
-InitializeResponse
-}
-class Errors {
-<<exception>>
-HarnessError
-TransportClosedError
-SdkProtocolError
-JsonRpcError
-}
-DeepSeekHarness --> HarnessClient : "使用"
-Session --> DeepSeekHarness : "持有"
-HarnessClient --> NotificationSubscription : "创建"
-DeepSeekHarness --> Models : "引用"
-DeepSeekHarness --> Errors : "抛出"
+graph LR
+Conn["client-connection"] --> WSrv["web-server"]
+Conn --> Proxy["apiproxy(ApiProxy)"]
+Proxy --> Events["events 域"]
+PySDK["Python SDK"] --> Proc["子进程(stdio)"]
 ```
 
 图表来源
-- [python/sdk/src/deepseek_harness/api.py:48-183](file://python/sdk/src/deepseek_harness/api.py#L48-L183)
-- [python/sdk/src/deepseek_harness/client.py:37-558](file://python/sdk/src/deepseek_harness/client.py#L37-L558)
-- [python/sdk/src/deepseek_harness/models.py:1-33](file://python/sdk/src/deepseek_harness/models.py#L1-L33)
-- [python/sdk/src/deepseek_harness/errors.py:1-24](file://python/sdk/src/deepseek_harness/errors.py#L1-L24)
+- [packages/client/connection/src/index.ts:130-195](file://packages/client/connection/src/index.ts#L130-L195)
+- [packages/host/apiproxy/src/api/index.ts:1-42](file://packages/host/apiproxy/src/api/index.ts#L1-L42)
+- [python/sdk/src/deepseek_harness/client.py:63-155](file://python/sdk/src/deepseek_harness/client.py#L63-L155)
 
 章节来源
-- [python/sdk/src/deepseek_harness/api.py:48-183](file://python/sdk/src/deepseek_harness/api.py#L48-L183)
-- [python/sdk/src/deepseek_harness/client.py:37-558](file://python/sdk/src/deepseek_harness/client.py#L37-L558)
-- [packages/sdk/client/src/api.ts:22-195](file://packages/sdk/client/src/api.ts#L22-L195)
+- [packages/client/connection/src/index.ts:130-195](file://packages/client/connection/src/index.ts#L130-L195)
+- [packages/host/apiproxy/src/api/index.ts:1-42](file://packages/host/apiproxy/src/api/index.ts#L1-L42)
+- [python/sdk/src/deepseek_harness/client.py:63-155](file://python/sdk/src/deepseek_harness/client.py#L63-L155)
 
 ## 性能考虑
-- 子进程复用：DeepSeekHarness 保持子进程生命周期，避免重复启动开销。
-- 超时控制：request_timeout_seconds 与 shutdown_timeout_seconds 控制请求与关闭行为。
-- 通知批处理：NotificationSubscription.drain 批量消费通知，减少回调开销。
-- 会话树过滤：subscribe_session_notifications 仅投递相关通知，降低无关事件处理成本。
-- 标准 I/O 缓冲：子进程 stdin/stdout 采用行缓冲，确保低延迟消息传递。
-- 诊断信息：关闭时收集 stderr 尾部与退出码，便于快速定位问题。
+- 连接复用
+  - 浏览器侧下行走 WebSocket，避免占用 HTTP/1.1 连接配额；开发环境默认明文 HTTP/1.1，生产建议前置支持 HTTP/2。
+- 请求体限制
+  - 最大请求体大小需满足图片附件上限（含 Base64 膨胀与信封开销），否则在插件加载阶段即报错。
+- 流式事件
+  - 事件流采用增量推送与快照混合（如 session/queue、session/jobs），客户端应以最新 seq 为准进行合并。
+- 进程 I/O
+  - Python SDK 使用独立读写线程与队列缓冲，注意合理设置请求超时与关闭超时，避免僵尸进程。
 
 章节来源
-- [python/sdk/src/deepseek_harness/client.py:63-116](file://python/sdk/src/deepseek_harness/client.py#L63-L116)
+- [packages/client/connection/src/index.ts:29-67](file://packages/client/connection/src/index.ts#L29-L67)
+- [packages/host/apiproxy/src/api/events.ts:76-108](file://packages/host/apiproxy/src/api/events.ts#L76-L108)
 - [python/sdk/src/deepseek_harness/client.py:228-296](file://python/sdk/src/deepseek_harness/client.py#L228-L296)
-- [python/sdk/src/deepseek_harness/client.py:403-422](file://python/sdk/src/deepseek_harness/client.py#L403-L422)
 
 ## 故障排查指南
-- 常见异常
-  - TransportClosedError：子进程退出或 stdout 关闭，检查子进程状态与 stderr 尾部。
-  - SdkProtocolError：运行时数据不符合协议，检查 session.event 与 assistant/message 结构。
-  - JsonRpcError：JSON-RPC 错误响应，查看 code、message、data。
-- 超时与挂起
-  - 若请求超时，捕获 TimeoutError 并查看诊断信息（退出码、stderr）。
-- 通知丢失
-  - 确认订阅了正确的会话树过滤器，且已等待收件箱回执后再收集事件。
-- 关闭流程
-  - 使用上下文管理器或显式 close，确保子进程被正确回收。
+- 403 Forbidden
+  - 非可信 Host 或特权方法非回环访问。检查 trustedHosts 配置与请求 Host。
+- 426 Upgrade Required
+  - 对事件路径使用了 GET 但未升级 WebSocket。请改用 WebSocket 连接。
+- 404 Not Found
+  - apiProxy 未注入或路由未注册。检查插件加载顺序与上下文。
+- 超时/关闭
+  - Python SDK 在读取/写入失败或进程退出时会抛出带诊断信息的错误（包含退出码与 stderr 尾部）。
+- 速率限制
+  - 代码未内置；若上游 LLM 提供商返回限流，应在调用侧实现退避重试。
 
 章节来源
-- [python/sdk/src/deepseek_harness/errors.py:1-24](file://python/sdk/src/deepseek_harness/errors.py#L1-L24)
-- [python/sdk/src/deepseek_harness/client.py:87-116](file://python/sdk/src/deepseek_harness/client.py#L87-L116)
-- [python/sdk/src/deepseek_harness/client.py:228-296](file://python/sdk/src/deepseek_harness/client.py#L228-L296)
+- [packages/client/connection/src/index.ts:140-195](file://packages/client/connection/src/index.ts#L140-L195)
+- [python/sdk/src/deepseek_harness/client.py:399-422](file://python/sdk/src/deepseek_harness/client.py#L399-L422)
 
 ## 结论
-本参考文档系统梳理了 DeepSeek Harness 的 Python SDK 与 TypeScript 客户端的公共接口、数据模型、错误体系与交互流程。通过子进程复用、通知过滤与超时控制等机制，提供了高效可靠的 agent 运行能力。Typert Gateway 为服务间远程调用提供了严格的类型契约与错误分类，便于构建可扩展的系统。
+DeepSeek Harness 通过统一的四象限 RPC 契约将 HTTP、WebSocket 与进程内通信抽象一致，既保证了前后端解耦，又简化了扩展新领域的成本。结合严格的信任边界与清晰的错误模型，便于在生产环境中构建稳定、安全的集成方案。Python SDK 提供了简洁的进程内 JSON-RPC 封装，适合自动化与测试场景。
 
 ## 附录
 
-### Python SDK 使用示例与集成模式
-- 基本用法：使用上下文管理器启动 harness 并运行 prompt。
-- 自定义配置：设置 provider、model、max_tokens、cordis 配置文件路径与环境变量。
-- 会话复用：通过 start_session 获取 Session 实例，多次 run 共享同一会话。
-- 通知处理：通过 on_notification 或 RunResult.notifications 观察会话事件。
+### REST API 速查
+- POST /api/<method>
+  - 请求体：ClientRequest{type:"client-request", rpcId, method, payload}
+  - 响应体：ServerResponse{type:"server-response", rpcId, result}
+- POST /api/respond
+  - 请求体：ClientResponse{type:"client-response", rpcId, result}
+  - 响应体：{accepted:true/false, reason?}
+- GET /events/mux、GET /events/host
+  - 行为：返回 426 并要求 Upgrade: websocket
 
 章节来源
-- [python/sdk/README.md:1-52](file://python/sdk/README.md#L1-L52)
+- [packages/host/apiproxy/src/api/rpc.ts:148-193](file://packages/host/apiproxy/src/api/rpc.ts#L148-L193)
+- [packages/client/connection/src/index.ts:140-195](file://packages/client/connection/src/index.ts#L140-L195)
+
+### WebSocket 事件类型速查
+- MuxFrame
+  - session/event、session/subscribed、approval/requested、approval/resolved、question/requested、question/resolved、session/queue、session/jobs、session/projection、stream/error
+- HostFrame
+  - host/session-added、host/session-removed、host/session-status、host/agent-error、host/workspace-changed、host/workspace-removed、host/workspace-order-changed、host/archived-sessions-changed、host/remote-event、stream/error
+
+章节来源
+- [packages/host/apiproxy/src/api/events.ts:69-156](file://packages/host/apiproxy/src/api/events.ts#L69-L156)
+
+### Python SDK 常用方法
+- DeepSeekHarness
+  - start/close/start_session/run
+- HarnessClient
+  - start/close/initialize/session_prompt/notify/next_notification/subscribe_notifications/subscribe_session_notifications/respond/respond_error
+
+章节来源
 - [python/sdk/src/deepseek_harness/api.py:48-124](file://python/sdk/src/deepseek_harness/api.py#L48-L124)
+- [python/sdk/src/deepseek_harness/client.py:63-155](file://python/sdk/src/deepseek_harness/client.py#L63-L155)
+- [python/sdk/src/deepseek_harness/client.py:180-227](file://python/sdk/src/deepseek_harness/client.py#L180-L227)
 
-### TypeScript 客户端使用示例与集成模式
-- 基本用法：await using 或显式 close 管理生命周期。
-- 会话与运行：session().run() 或 harness.run() 直接运行。
-- 通知与事件：onNotification 回调与 RunResult.events/notifications。
-
-章节来源
-- [packages/sdk/client/src/api.ts:22-195](file://packages/sdk/client/src/api.ts#L22-L195)
-
-### 请求与响应格式
-- 初始化请求：initialize({ cwd, provider, model, maxTokens? })
-- Prompt 请求：session/prompt({ sessionId, contentBlocks })
-- 通知类型：session.event、session.status、subagent.started/finished 等
-- 结果结构：RunResult 包含 sessionId、finalResponse、finishReason、events、notifications
+### 安全与版本说明
+- 安全
+  - 信任边界基于 Host 与 trustedHosts；特权方法强制回环；不实现应用层鉴权。
+  - 浏览器同源与跨站防护由信任检查与升级策略共同保障。
+- 版本
+  - 事件与消息使用 schema 校验；未知字段按“宽数据+窄视图”原则处理，向后兼容未知事件类型。
+  - 建议在客户端对版本号字段做容错与降级处理。
 
 章节来源
-- [python/sdk/src/deepseek_harness/client.py:117-155](file://python/sdk/src/deepseek_harness/client.py#L117-L155)
-- [python/sdk/src/deepseek_harness/api.py:127-183](file://python/sdk/src/deepseek_harness/api.py#L127-L183)
+- [packages/client/connection/src/api-request-trust.ts:1-28](file://packages/client/connection/src/api-request-trust.ts#L1-L28)
+- [packages/host/apiproxy/src/api/events.ts:46-156](file://packages/host/apiproxy/src/api/events.ts#L46-L156)
 
-### 错误码与异常类型
-- Python SDK 异常：HarnessError、TransportClosedError、SdkProtocolError、JsonRpcError
-- Typert Gateway 错误码：见 TypertGatewayErrorCode 集合
-- 传输错误：TimeoutError、TransportClosedError
-
-章节来源
-- [python/sdk/src/deepseek_harness/errors.py:1-24](file://python/sdk/src/deepseek_harness/errors.py#L1-L24)
-- [packages/api/gateway/src/types.ts:18-37](file://packages/api/gateway/src/types.ts#L18-L37)
-
-### 版本兼容性与迁移指南
-- Python SDK 与 TS 客户端保持语义一致：DeepSeekHarness/HarnessSession 对应 Session。
-- 通知与事件结构保持稳定：assistant/message、turn/end 等关键字段。
-- 迁移建议：从旧版通知监听迁移到会话树订阅，确保收件箱回执后再收集事件。
+### 迁移与兼容性
+- 从 HTTP SSE 迁移到 WebSocket 下行：保持四象限消息不变，仅更换物理通道；GET 事件路径将返回 426 引导升级。
+- 新增领域方法：在 ApiProxy 中添加字段与方法签名，并在映射表中登记，即可自动获得 HTTP/WebSocket 支持。
+- Python SDK：保持 JSON-RPC 方法名与参数结构稳定；通知订阅支持会话树过滤，便于子代理场景迁移。
 
 章节来源
-- [packages/sdk/client/src/api.ts:132-195](file://packages/sdk/client/src/api.ts#L132-L195)
-- [python/sdk/src/deepseek_harness/api.py:127-183](file://python/sdk/src/deepseek_harness/api.py#L127-L183)
-
-### 最佳实践与性能优化建议
-- 使用上下文管理器或 async with 管理生命周期。
-- 合理设置 request_timeout_seconds 与 shutdown_timeout_seconds。
-- 利用会话树订阅减少无关通知处理。
-- 复用 DeepSeekHarness 实例以避免子进程频繁启动。
-- 关注 stderr 尾部与退出码以快速定位问题。
-
-章节来源
-- [python/sdk/src/deepseek_harness/client.py:63-116](file://python/sdk/src/deepseek_harness/client.py#L63-L116)
-- [python/sdk/src/deepseek_harness/client.py:403-422](file://python/sdk/src/deepseek_harness/client.py#L403-L422)
+- [packages/host/apiproxy/src/api/index.ts:21-42](file://packages/host/apiproxy/src/api/index.ts#L21-L42)
+- [packages/client/connection/src/index.ts:140-195](file://packages/client/connection/src/index.ts#L140-L195)
+- [python/sdk/src/deepseek_harness/client.py:192-205](file://python/sdk/src/deepseek_harness/client.py#L192-L205)

@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_llm_and_skills/mcp_client
+title: MCP 客户端桥接插件
+scope:
+    - packages/mcp/mcp-client/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_core_runtime/core_runtime/tools_schema

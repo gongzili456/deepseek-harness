@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_core_runtime/core_runtime/helpers
+title: Agent 默认模型、系统提示与工具呈现辅助包
+scope:
+    - packages/core/agent-default-model/
+    - packages/core/system-prompt/
+    - packages/core/agent-tool-presentation/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_llm_and_skills/llm_core

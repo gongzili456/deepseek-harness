@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_agent_features/subagent_coordination/core_runtime
+title: 子代理协调核心运行时（Subagent Runtime）
+scope:
+    - packages/subagent/subagent/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_agent_features/subagent_coordination/tool_packages

@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: packages/core_runtime/typert/registry
-title: Typert 运行时注册中心（Schema/反射/远程调用注册）
-scope:
-    - packages/typert/registry/
-source_files: []
-depends_on: []
-related_to:
-    - path: packages/core_runtime/typert/loader

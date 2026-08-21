@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: docs
+title: 多语言技术文档与知识库
+scope:
+    - docs/
+source_files: []
+depends_on: []
+related_to:
+    - path: website

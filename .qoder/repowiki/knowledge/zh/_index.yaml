@@ -3,22 +3,19 @@ schema_version: 1
 locale: zh-CN
 branch: master
 nodes_managed: true
-exported_at: "2026-08-15T04:54:18Z"
+exported_at: "2026-08-21T02:21:49Z"
 modules:
     "":
-        dir_name: DeepSeek Harness 多包工作区根
-        title: DeepSeek Harness 多包工作区根
+        dir_name: DeepSeek Harness 单体仓库根（pnpm monorepo）
+        title: DeepSeek Harness 单体仓库根（pnpm monorepo）
         scope:
             - README.md
             - CONTRIBUTING.md
             - .gitignore
             - package.json
             - pnpm-workspace.yaml
-            - tsconfig.base.json
+            - tsconfig.json
             - vitest.config.ts
-            - .github/
-            - .agents/
-            - patches/
             - .editorconfig
             - .gitattributes
             - .gitlab-ci.yml
@@ -39,9 +36,9 @@ modules:
             - pnpm-lock.yaml
             - pytest.ini
             - tsconfig.base.client.json
+            - tsconfig.base.json
             - tsconfig.client.json
             - tsconfig.host.json
-            - tsconfig.json
             - tsdown.config.ts
             - vitest.e2e.config.ts
             - vitest.shared.ts
@@ -51,386 +48,509 @@ modules:
             - vitest.web.perf.config.ts
         source_files: []
         children:
-            - apps
+            - apps_cli
+            - apps_web
             - docs
             - examples
-            - native
-            - packages
+            - native_landlock
+            - packages_agent_features
+            - packages_client_and_web
+            - packages_core_runtime
+            - packages_credentials_and_identity
+            - packages_extensions_and_api
+            - packages_filesystem_and_shell
+            - packages_llm_and_skills
+            - packages_session_and_workflow
+            - packages_storage_and_persistence
+            - packages_support_utilities
             - python_sdk
-            - scripts
+            - scripts_and_tooling
             - website
         depends_on: []
         related_to: []
-    apps:
-        dir_name: dsh CLI 与 Web 前端应用
-        title: dsh CLI 与 Web 前端应用
+    apps_cli:
+        dir_name: dsh CLI 启动器与配置编排
+        title: dsh CLI 启动器与配置编排
         scope:
-            - apps/
+            - apps/cli/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: python_sdk
+            - path: packages_core_runtime/boot
+    apps_web:
+        dir_name: Web 前端应用与浏览器 E2E 测试
+        title: Web 前端应用与浏览器 E2E 测试
+        scope:
+            - apps/web/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_core_runtime/host
     docs:
-        dir_name: 项目文档与多语言规范
-        title: 项目文档与多语言规范
+        dir_name: 多语言技术文档与知识库
+        title: 多语言技术文档与知识库
         scope:
             - docs/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: scripts
             - path: website
     examples:
-        dir_name: DeepSeek Harness 示例与快照测试集
-        title: DeepSeek Harness 示例与快照测试集
+        dir_name: DeepSeek Harness 示例与可运行演示集合
+        title: DeepSeek Harness 示例与可运行演示集合
         scope:
             - examples/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/boot_settings_workspace_context
-    native:
-        dir_name: Landlock Run 自限制执行启动器（原生二进制与 npm 发布）
-        title: Landlock Run 自限制执行启动器（原生二进制与 npm 发布）
+            - path: packages_extensions_and_api
+    native_landlock:
+        dir_name: Landlock 子进程沙箱启动器（landlock-run）
+        title: Landlock 子进程沙箱启动器（landlock-run）
         scope:
-            - native/
+            - native/landlock-run/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/capability_code_sandbox
-            - path: packages/capability_shell_fs
-    packages:
-        dir_name: DeepSeek Harness 多包插件运行时
-        title: DeepSeek Harness 多包插件运行时
+            - path: packages_filesystem_and_shell/shell_execution
+    packages_agent_features:
+        dir_name: Agent 会话能力包集合（Goal _ Plan _ Subagent _ Todo）
+        title: Agent 会话能力包集合（Goal / Plan / Subagent / Todo）
         scope:
-            - packages/
+            - packages/goal/
+            - packages/plan/
+            - packages/subagent/
+            - packages/todo/
         source_files: []
         children:
-            - packages/boot_settings_workspace_context
-            - packages/capability_code_sandbox
-            - packages/capability_lsp_skill
-            - packages/capability_shell_fs
-            - packages/capability_subagent_workflow_jobs
-            - packages/core_runtime
-            - packages/host_client_sdk
-            - packages/llm_identity_credentials
-            - packages/platform_integrations
-            - packages/product_features
-            - packages/session_lifecycle
-            - packages/storage_backends
-            - packages/support_infra
-            - packages/web_tools
+            - packages_agent_features/goal_tracking
+            - packages_agent_features/planning
+            - packages_agent_features/subagent_coordination
+            - packages_agent_features/todo_list
         depends_on: []
         related_to: []
-    packages/boot_settings_workspace_context:
-        dir_name: 应用启动、配置与上下文基础设施
-        title: 应用启动、配置与上下文基础设施
+    packages_agent_features/goal_tracking:
+        dir_name: Agent 会话内目标（Goal）追踪子系统
+        title: Agent 会话内目标（Goal）追踪子系统
         scope:
-            - packages/boot/
-            - packages/settings/
-            - packages/workspace/
-            - packages/context/
+            - packages/goal/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: examples
-            - path: packages/core_runtime/runtime_primitives
-    packages/capability_code_sandbox:
-        dir_name: 代码执行与进程沙箱能力层（code-runtime _ sandbox _ e2b）
-        title: 代码执行与进程沙箱能力层（code-runtime / sandbox / e2b）
+            - path: packages_core_runtime/core_runtime/tools_schema
+    packages_agent_features/planning:
+        dir_name: Plan Mode 协作状态与审批插件
+        title: Plan Mode 协作状态与审批插件
         scope:
-            - packages/code-runtime/
-            - packages/sandbox/
-            - packages/e2b/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: native
-    packages/capability_lsp_skill:
-        dir_name: LSP、Skill 与会话压缩能力层
-        title: LSP、Skill 与会话压缩能力层
-        scope:
-            - packages/lsp/
-            - packages/skill/
-            - packages/compaction/
+            - packages/plan/
         source_files: []
         children: []
         depends_on: []
         related_to: []
-    packages/capability_shell_fs:
-        dir_name: Shell、文件系统与子进程能力族（执行世界基础服务）
-        title: Shell、文件系统与子进程能力族（执行世界基础服务）
-        scope:
-            - packages/shell/
-            - packages/fs/
-            - packages/subprocess/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: native
-    packages/capability_subagent_workflow_jobs:
-        dir_name: 子代理、工作流与后台作业三大能力家族
-        title: 子代理、工作流与后台作业三大能力家族
+    packages_agent_features/subagent_coordination:
+        dir_name: 子代理协调子系统（Subagent Coordination）
+        title: 子代理协调子系统（Subagent Coordination）
         scope:
             - packages/subagent/
-            - packages/workflow/
-            - packages/jobs/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/host_client_sdk
-    packages/core_runtime:
-        dir_name: Core Runtime 与 Typert 类型驱动框架
-        title: Core Runtime 与 Typert 类型驱动框架
-        scope:
-            - packages/core/
-            - packages/typert/
         source_files: []
         children:
-            - packages/core_runtime/agent_core
-            - packages/core_runtime/agent_loop
-            - packages/core_runtime/runtime_primitives
-            - packages/core_runtime/typert
+            - packages_agent_features/subagent_coordination/core_runtime
+            - packages_agent_features/subagent_coordination/process_drivers
+            - packages_agent_features/subagent_coordination/tool_packages
+            - packages_agent_features/subagent_coordination/transport_adapters
         depends_on: []
-        related_to: []
-    packages/core_runtime/agent_core:
-        dir_name: Agent 核心运行时与工具呈现层
-        title: Agent 核心运行时与工具呈现层
+        related_to:
+            - path: packages_session_and_workflow/workflow_orchestration
+    packages_agent_features/subagent_coordination/core_runtime:
+        dir_name: 子代理协调核心运行时（Subagent Runtime）
+        title: 子代理协调核心运行时（Subagent Runtime）
         scope:
-            - packages/core/agent/
-            - packages/core/agent-default-model/
-            - packages/core/agent-tool-presentation/
+            - packages/subagent/subagent/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/core_runtime/agent_loop
-            - path: packages/llm_identity_credentials
-    packages/core_runtime/agent_loop:
-        dir_name: Agent Loop 运行时驱动与工具调度
-        title: Agent Loop 运行时驱动与工具调度
+            - path: packages_agent_features/subagent_coordination/tool_packages
+    packages_agent_features/subagent_coordination/process_drivers:
+        dir_name: 进程内子代理驱动与后端（Fork_Spawn）
+        title: 进程内子代理驱动与后端（Fork/Spawn）
         scope:
+            - packages/subagent/subagent-fork-in-process/
+            - packages/subagent/subagent-spawn-in-process/
+            - packages/subagent/subagent-in-process-driver/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    packages_agent_features/subagent_coordination/tool_packages:
+        dir_name: 子代理工具包（委派_控制_报告）
+        title: 子代理工具包（委派/控制/报告）
+        scope:
+            - packages/subagent/tool-subagent/
+            - packages/subagent/tool-subagent-control/
+            - packages/subagent/tool-subagent-report/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_agent_features/subagent_coordination/core_runtime
+    packages_agent_features/subagent_coordination/transport_adapters:
+        dir_name: 子代理传输适配器（ACP _ Claude Code _ Codex _ DSH SDK）
+        title: 子代理传输适配器（ACP / Claude Code / Codex / DSH SDK）
+        scope:
+            - packages/subagent/subagent-acp/
+            - packages/subagent/subagent-claude-code/
+            - packages/subagent/subagent-codex/
+            - packages/subagent/subagent-dsh-sdk/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: python_sdk
+    packages_agent_features/todo_list:
+        dir_name: Todo 列表工具与投影（tool-todo）
+        title: Todo 列表工具与投影（tool-todo）
+        scope:
+            - packages/todo/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    packages_client_and_web:
+        dir_name: Web 客户端、浏览器工具与 Hook 桥接包集合
+        title: Web 客户端、浏览器工具与 Hook 桥接包集合
+        scope:
+            - packages/client/
+            - packages/web/
+            - packages/hooks/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_core_runtime/host
+    packages_core_runtime:
+        dir_name: DeepSeek Harness 核心运行时与宿主启动层
+        title: DeepSeek Harness 核心运行时与宿主启动层
+        scope:
+            - packages/core/
+            - packages/boot/
+            - packages/host/
+        source_files: []
+        children:
+            - packages_core_runtime/boot
+            - packages_core_runtime/core_runtime
+            - packages_core_runtime/host
+        depends_on: []
+        related_to: []
+    packages_core_runtime/boot:
+        dir_name: 应用启动与命令行引导（app-boot & cmdline）
+        title: 应用启动与命令行引导（app-boot & cmdline）
+        scope:
+            - packages/boot/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: apps_cli
+            - path: packages_credentials_and_identity
+    packages_core_runtime/core_runtime:
+        dir_name: DeepSeek Harness Core Runtime
+        title: DeepSeek Harness Core Runtime
+        scope:
+            - packages/core/
+        source_files: []
+        children:
+            - packages_core_runtime/core_runtime/agent_lifecycle
+            - packages_core_runtime/core_runtime/helpers
+            - packages_core_runtime/core_runtime/scope_events
+            - packages_core_runtime/core_runtime/session_management
+            - packages_core_runtime/core_runtime/tools_schema
+        depends_on: []
+        related_to: []
+    packages_core_runtime/core_runtime/agent_lifecycle:
+        dir_name: Agent 注册中心与 Agent Loop 驱动
+        title: Agent 注册中心与 Agent Loop 驱动
+        scope:
+            - packages/core/agent/
             - packages/core/agent-loop/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/core_runtime/agent_core
-    packages/core_runtime/runtime_primitives:
-        dir_name: 运行时核心原语：作用域、会话、系统提示与工具注册
-        title: 运行时核心原语：作用域、会话、系统提示与工具注册
+            - path: packages_core_runtime/core_runtime/scope_events
+    packages_core_runtime/core_runtime/helpers:
+        dir_name: Agent 默认模型、系统提示与工具呈现辅助包
+        title: Agent 默认模型、系统提示与工具呈现辅助包
+        scope:
+            - packages/core/agent-default-model/
+            - packages/core/system-prompt/
+            - packages/core/agent-tool-presentation/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_llm_and_skills/llm_core
+    packages_core_runtime/core_runtime/scope_events:
+        dir_name: 作用域注册与事件路由原语 (dsh-scope)
+        title: 作用域注册与事件路由原语 (dsh-scope)
         scope:
             - packages/core/scope/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_core_runtime/core_runtime/agent_lifecycle
+    packages_core_runtime/core_runtime/session_management:
+        dir_name: 事件溯源会话存储与表面投影
+        title: 事件溯源会话存储与表面投影
+        scope:
             - packages/core/session/
-            - packages/core/system-prompt/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    packages_core_runtime/core_runtime/tools_schema:
+        dir_name: 工具注册与执行管线 (dsh-tools)
+        title: 工具注册与执行管线 (dsh-tools)
+        scope:
             - packages/core/tools/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/boot_settings_workspace_context
-            - path: packages/product_features
-    packages/core_runtime/typert:
-        dir_name: Typert 类型驱动 RPC 框架核心
-        title: Typert 类型驱动 RPC 框架核心
-        scope:
-            - packages/typert/
-        source_files: []
-        children:
-            - packages/core_runtime/typert/generator
-            - packages/core_runtime/typert/loader
-            - packages/core_runtime/typert/protocol
-            - packages/core_runtime/typert/registry
-        depends_on: []
-        related_to: []
-    packages/core_runtime/typert/generator:
-        dir_name: Typert 工作区分析与模型驱动代码生成器
-        title: Typert 工作区分析与模型驱动代码生成器
-        scope:
-            - packages/typert/generator/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/core_runtime/typert/loader
-    packages/core_runtime/typert/loader:
-        dir_name: Typert Loader 自动注册插件
-        title: Typert Loader 自动注册插件
-        scope:
-            - packages/typert/loader/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/core_runtime/typert/generator
-            - path: packages/core_runtime/typert/registry
-    packages/core_runtime/typert/protocol:
-        dir_name: Typert 协议与远程装饰器运行时
-        title: Typert 协议与远程装饰器运行时
-        scope:
-            - packages/typert/protocol/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to: []
-    packages/core_runtime/typert/registry:
-        dir_name: Typert 运行时注册中心（Schema_反射_远程调用注册）
-        title: Typert 运行时注册中心（Schema/反射/远程调用注册）
-        scope:
-            - packages/typert/registry/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/core_runtime/typert/loader
-    packages/host_client_sdk:
-        dir_name: 主机-客户端 SDK 与 ACP 桥接层
-        title: 主机-客户端 SDK 与 ACP 桥接层
+            - path: packages_agent_features/goal_tracking
+            - path: packages_llm_and_skills/mcp_client
+    packages_core_runtime/host:
+        dir_name: Web GUI Host 运行时与 API 网关
+        title: Web GUI Host 运行时与 API 网关
         scope:
             - packages/host/
-            - packages/client/
-            - packages/sdk/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: apps_web
+            - path: packages_client_and_web
+    packages_credentials_and_identity:
+        dir_name: 凭据、身份与设置持久化服务
+        title: 凭据、身份与设置持久化服务
+        scope:
+            - packages/credentials/
+            - packages/identity/
+            - packages/settings/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_core_runtime/boot
+    packages_extensions_and_api:
+        dir_name: Cordis 动态插件运行时与 ACP_网关 API
+        title: Cordis 动态插件运行时与 ACP/网关 API
+        scope:
+            - packages/extensions/
+            - packages/api/
             - packages/acp/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/capability_subagent_workflow_jobs
-            - path: packages/platform_integrations
-    packages/llm_identity_credentials:
-        dir_name: LLM 适配器、凭据与匿名身份基础设施
-        title: LLM 适配器、凭据与匿名身份基础设施
+            - path: examples
+    packages_filesystem_and_shell:
+        dir_name: 运行时资源抽象层（FS_Shell_Subprocess_Terminal）
+        title: 运行时资源抽象层（FS/Shell/Subprocess/Terminal）
         scope:
-            - packages/llm/
-            - packages/identity/
-            - packages/credentials/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/core_runtime/agent_core
-            - path: packages/web_tools
-    packages/platform_integrations:
-        dir_name: 平台集成层（MCP客户端、Hook协议与Cordis动态插件）
-        title: 平台集成层（MCP客户端、Hook协议与Cordis动态插件）
-        scope:
-            - packages/mcp/
-            - packages/hooks/
-            - packages/extensions/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/host_client_sdk
-    packages/product_features:
-        dir_name: Agent 业务功能子系统（目标_计划_待办_日程_反馈_预设_守卫）
-        title: Agent 业务功能子系统（目标/计划/待办/日程/反馈/预设/守卫）
-        scope:
-            - packages/goal/
-            - packages/schedule/
-            - packages/feedback/
-            - packages/todo/
-            - packages/plan/
-            - packages/preset/
-            - packages/guard/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/core_runtime/runtime_primitives
-    packages/session_lifecycle:
-        dir_name: 会话生命周期与查询子系统（session_ + session-query_）
-        title: 会话生命周期与查询子系统（session/ + session-query/）
-        scope:
-            - packages/session/
-            - packages/session-query/
+            - packages/fs/
+            - packages/shell/
+            - packages/subprocess/
+            - packages/terminal/
         source_files: []
         children:
-            - packages/session_lifecycle/session_checkpoint_policy
-            - packages/session_lifecycle/session_persistence
-            - packages/session_lifecycle/session_projection_stats
-            - packages/session_lifecycle/session_query_core
-            - packages/session_lifecycle/session_query_tool_export
-            - packages/session_lifecycle/session_telemetry
-            - packages/session_lifecycle/session_title
+            - packages_filesystem_and_shell/filesystem
+            - packages_filesystem_and_shell/shell_execution
+            - packages_filesystem_and_shell/subprocess_management
+            - packages_filesystem_and_shell/terminal_io
         depends_on: []
         related_to: []
-    packages/session_lifecycle/session_checkpoint_policy:
-        dir_name: 会话语义检查点策略插件
-        title: 会话语义检查点策略插件
+    packages_filesystem_and_shell/filesystem:
+        dir_name: 文件系统能力栈（抽象服务、本地_沙箱实现与模型工具）
+        title: 文件系统能力栈（抽象服务、本地/沙箱实现与模型工具）
+        scope:
+            - packages/fs/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_llm_and_skills/skill_registry
+    packages_filesystem_and_shell/shell_execution:
+        dir_name: Shell 执行能力族（bash_pwsh 本地与沙箱执行器及模型工具）
+        title: Shell 执行能力族（bash/pwsh 本地与沙箱执行器及模型工具）
+        scope:
+            - packages/shell/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: native_landlock
+    packages_filesystem_and_shell/subprocess_management:
+        dir_name: 子进程抽象与本地实现（@deepseek-ai_dsh-subprocess）
+        title: 子进程抽象与本地实现（@deepseek-ai/dsh-subprocess）
+        scope:
+            - packages/subprocess/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_filesystem_and_shell/terminal_io
+    packages_filesystem_and_shell/terminal_io:
+        dir_name: 持久 PTY 终端子系统（会话注册、Bash 后端与模型工具）
+        title: 持久 PTY 终端子系统（会话注册、Bash 后端与模型工具）
+        scope:
+            - packages/terminal/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_filesystem_and_shell/subprocess_management
+    packages_llm_and_skills:
+        dir_name: LLM、技能与 MCP 插件集合
+        title: LLM、技能与 MCP 插件集合
+        scope:
+            - packages/llm/
+            - packages/skill/
+            - packages/mcp/
+        source_files: []
+        children:
+            - packages_llm_and_skills/llm_core
+            - packages_llm_and_skills/llm_providers
+            - packages_llm_and_skills/llm_retry_meter
+            - packages_llm_and_skills/mcp_client
+            - packages_llm_and_skills/skill_registry
+        depends_on: []
+        related_to: []
+    packages_llm_and_skills/llm_core:
+        dir_name: LLM 运行时与适配器注册中心
+        title: LLM 运行时与适配器注册中心
+        scope:
+            - packages/llm/llm/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_core_runtime/core_runtime/helpers
+            - path: packages_llm_and_skills/llm_retry_meter
+            - path: packages_session_and_workflow/session_title_providers
+    packages_llm_and_skills/llm_providers:
+        dir_name: DeepSeek 与 pi-ai LLM 适配器插件
+        title: DeepSeek 与 pi-ai LLM 适配器插件
+        scope:
+            - packages/llm/llm-deepseek/
+            - packages/llm/llm-pi-ai/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    packages_llm_and_skills/llm_retry_meter:
+        dir_name: LLM 重试策略与 Token 计量服务
+        title: LLM 重试策略与 Token 计量服务
+        scope:
+            - packages/llm/llm-retry/
+            - packages/llm/token-meter/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_llm_and_skills/llm_core
+    packages_llm_and_skills/mcp_client:
+        dir_name: MCP 客户端桥接插件
+        title: MCP 客户端桥接插件
+        scope:
+            - packages/mcp/mcp-client/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_core_runtime/core_runtime/tools_schema
+    packages_llm_and_skills/skill_registry:
+        dir_name: 技能注册中心与文件系统_工具集成
+        title: 技能注册中心与文件系统/工具集成
+        scope:
+            - packages/skill/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_filesystem_and_shell/filesystem
+    packages_session_and_workflow:
+        dir_name: 会话、工作流与定时提醒能力族
+        title: 会话、工作流与定时提醒能力族
+        scope:
+            - packages/session/
+            - packages/workflow/
+            - packages/schedule/
+        source_files: []
+        children:
+            - packages_session_and_workflow/schedule_runtime
+            - packages_session_and_workflow/session_core
+            - packages_session_and_workflow/session_features
+            - packages_session_and_workflow/session_persistence_backends
+            - packages_session_and_workflow/session_title_providers
+            - packages_session_and_workflow/workflow_orchestration
+            - packages_session_and_workflow/workflow_tools
+        depends_on: []
+        related_to: []
+    packages_session_and_workflow/schedule_runtime:
+        dir_name: 会话内定时提醒运行时（Schedule Runtime）
+        title: 会话内定时提醒运行时（Schedule Runtime）
+        scope:
+            - packages/schedule/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_session_and_workflow/session_core
+    packages_session_and_workflow/session_core:
+        dir_name: 会话持久化、检查点策略与投影系统
+        title: 会话持久化、检查点策略与投影系统
         scope:
             - packages/session/session-checkpoint-policy/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/session_lifecycle/session_persistence
-    packages/session_lifecycle/session_persistence:
-        dir_name: 会话持久化抽象与后端实现（JSONL_SQLite）
-        title: 会话持久化抽象与后端实现（JSONL/SQLite）
-        scope:
             - packages/session/session-persistence/
-            - packages/session/session-persistence-jsonl/
-            - packages/session/session-persistence-sqlite/
+            - packages/session/session-projection/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: packages/session_lifecycle/session_checkpoint_policy
-    packages/session_lifecycle/session_projection_stats:
-        dir_name: 会话投影与持久化缓存（session-projection _ session-projection-cache _ session-stats）
-        title: 会话投影与持久化缓存（session-projection / session-projection-cache / session-stats）
+            - path: packages_session_and_workflow/schedule_runtime
+    packages_session_and_workflow/session_features:
+        dir_name: 会话投影缓存、统计与遥测能力包
+        title: 会话投影缓存、统计与遥测能力包
         scope:
-            - packages/session/session-projection/
             - packages/session/session-projection-cache/
             - packages/session/session-stats/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to: []
-    packages/session_lifecycle/session_query_core:
-        dir_name: 会话查询核心与 SQLite 全文检索后端
-        title: 会话查询核心与 SQLite 全文检索后端
-        scope:
-            - packages/session-query/session-query/
-            - packages/session-query/session-query-sqlite/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/session_lifecycle/session_query_tool_export
-    packages/session_lifecycle/session_query_tool_export:
-        dir_name: 会话查询工具与日志导出插件
-        title: 会话查询工具与日志导出插件
-        scope:
-            - packages/session-query/tool-session-query/
-            - packages/session-query/session-log-export/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/session_lifecycle/session_query_core
-    packages/session_lifecycle/session_telemetry:
-        dir_name: 会话遥测采集与 OTel 后端
-        title: 会话遥测采集与 OTel 后端
-        scope:
             - packages/session/session-telemetry/
             - packages/session/session-telemetry-otel/
         source_files: []
         children: []
         depends_on: []
         related_to: []
-    packages/session_lifecycle/session_title:
-        dir_name: 会话标题生成服务与LLM提供者
-        title: 会话标题生成服务与LLM提供者
+    packages_session_and_workflow/session_persistence_backends:
+        dir_name: Session 持久化后端（JSONL 与 SQLite）
+        title: Session 持久化后端（JSONL 与 SQLite）
+        scope:
+            - packages/session/session-persistence-jsonl/
+            - packages/session/session-persistence-sqlite/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    packages_session_and_workflow/session_title_providers:
+        dir_name: 会话标题生成服务与 LLM 插件
+        title: 会话标题生成服务与 LLM 插件
         scope:
             - packages/session/session-title/
             - packages/session/session-title-all-prompts-llm/
@@ -439,62 +559,75 @@ modules:
         source_files: []
         children: []
         depends_on: []
-        related_to: []
-    packages/storage_backends:
-        dir_name: 存储后端家族（Storage Backends）
-        title: 存储后端家族（Storage Backends）
+        related_to:
+            - path: packages_llm_and_skills/llm_core
+    packages_session_and_workflow/workflow_orchestration:
+        dir_name: 工作流编排引擎与 Worker 线程执行环境
+        title: 工作流编排引擎与 Worker 线程执行环境
+        scope:
+            - packages/workflow/workflow/
+            - packages/workflow/workflow-worker-thread/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_agent_features/subagent_coordination
+            - path: packages_session_and_workflow/workflow_tools
+    packages_session_and_workflow/workflow_tools:
+        dir_name: 工作流与 Ralph 模型工具包
+        title: 工作流与 Ralph 模型工具包
+        scope:
+            - packages/workflow/tool-workflow/
+            - packages/workflow/tool-ralph/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: packages_session_and_workflow/workflow_orchestration
+    packages_storage_and_persistence:
+        dir_name: 存储、溢出与压缩持久化子系统
+        title: 存储、溢出与压缩持久化子系统
         scope:
             - packages/storage/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: packages/web_tools
-    packages/support_infra:
-        dir_name: 支撑工具、测试基础设施与示例包集合
-        title: 支撑工具、测试基础设施与示例包集合
-        scope:
-            - packages/util/
-            - packages/test-support/
-            - packages/examples/
-            - packages/runtime-diagnostics/
+            - packages/spill/
+            - packages/compaction/
         source_files: []
         children: []
         depends_on: []
         related_to: []
-    packages/web_tools:
-        dir_name: Web 访问、附件与溢出存储工具集
-        title: Web 访问、附件与溢出存储工具集
+    packages_support_utilities:
+        dir_name: 共享工具、Typert 类型协议与测试_示例支撑包集合
+        title: 共享工具、Typert 类型协议与测试/示例支撑包集合
         scope:
-            - packages/web/
-            - packages/attachment/
-            - packages/spill/
+            - packages/util/
+            - packages/typert/
+            - packages/test-support/
+            - packages/examples/
         source_files: []
         children: []
         depends_on: []
-        related_to:
-            - path: packages/llm_identity_credentials
-            - path: packages/storage_backends
+        related_to: []
     python_sdk:
-        dir_name: DeepSeek Harness Python SDK 与运行时绑定包
-        title: DeepSeek Harness Python SDK 与运行时绑定包
+        dir_name: DeepSeek Harness Python SDK 与运行时载体
+        title: DeepSeek Harness Python SDK 与运行时载体
         scope:
-            - python/
+            - python/sdk/
+            - python/sdk-runtime/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: apps
-    scripts:
-        dir_name: 仓库质量门禁与代码生成脚本集
-        title: 仓库质量门禁与代码生成脚本集
+            - path: packages_agent_features/subagent_coordination/transport_adapters
+    scripts_and_tooling:
+        dir_name: 仓库级质量门禁与文档_翻译生成脚本集
+        title: 仓库级质量门禁与文档/翻译生成脚本集
         scope:
             - scripts/
         source_files: []
         children: []
         depends_on: []
         related_to:
-            - path: docs
+            - path: website
     website:
         dir_name: DeepSeek Harness 文档站点（VitePress）
         title: DeepSeek Harness 文档站点（VitePress）
@@ -505,3 +638,4 @@ modules:
         depends_on: []
         related_to:
             - path: docs
+            - path: scripts_and_tooling

@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_agent_features/goal_tracking
+title: Agent 会话内目标（Goal）追踪子系统
+scope:
+    - packages/goal/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_core_runtime/core_runtime/tools_schema

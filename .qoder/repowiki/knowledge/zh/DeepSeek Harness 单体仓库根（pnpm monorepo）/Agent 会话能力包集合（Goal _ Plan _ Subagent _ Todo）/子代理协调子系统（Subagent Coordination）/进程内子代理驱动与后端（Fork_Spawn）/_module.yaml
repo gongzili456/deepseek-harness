@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages_agent_features/subagent_coordination/process_drivers
+title: 进程内子代理驱动与后端（Fork/Spawn）
+scope:
+    - packages/subagent/subagent-fork-in-process/
+    - packages/subagent/subagent-spawn-in-process/
+    - packages/subagent/subagent-in-process-driver/
+source_files: []
+depends_on: []
+related_to: []

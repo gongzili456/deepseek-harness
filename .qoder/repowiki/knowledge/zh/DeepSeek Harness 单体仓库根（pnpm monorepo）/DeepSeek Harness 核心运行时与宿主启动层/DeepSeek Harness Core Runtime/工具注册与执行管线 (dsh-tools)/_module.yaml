@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages_core_runtime/core_runtime/tools_schema
+title: 工具注册与执行管线 (dsh-tools)
+scope:
+    - packages/core/tools/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_agent_features/goal_tracking
+    - path: packages_llm_and_skills/mcp_client

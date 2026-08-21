@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: packages/core_runtime/agent_loop
-title: Agent Loop 运行时驱动与工具调度
-scope:
-    - packages/core/agent-loop/
-source_files: []
-depends_on: []
-related_to:
-    - path: packages/core_runtime/agent_core

@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages_session_and_workflow
+title: 会话、工作流与定时提醒能力族
+scope:
+    - packages/session/
+    - packages/workflow/
+    - packages/schedule/
+source_files: []
+depends_on: []
+related_to: []

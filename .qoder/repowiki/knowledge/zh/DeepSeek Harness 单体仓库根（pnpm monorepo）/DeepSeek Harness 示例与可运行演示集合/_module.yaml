@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: examples
+title: DeepSeek Harness 示例与可运行演示集合
+scope:
+    - examples/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_extensions_and_api

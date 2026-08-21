@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages_core_runtime/core_runtime/agent_lifecycle
+title: Agent 注册中心与 Agent Loop 驱动
+scope:
+    - packages/core/agent/
+    - packages/core/agent-loop/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_core_runtime/core_runtime/scope_events

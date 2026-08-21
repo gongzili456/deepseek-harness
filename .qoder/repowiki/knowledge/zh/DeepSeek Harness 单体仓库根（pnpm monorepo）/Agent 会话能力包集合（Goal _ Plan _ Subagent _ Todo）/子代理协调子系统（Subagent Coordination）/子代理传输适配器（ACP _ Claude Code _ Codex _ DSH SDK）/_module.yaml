@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: packages_agent_features/subagent_coordination/transport_adapters
+title: 子代理传输适配器（ACP / Claude Code / Codex / DSH SDK）
+scope:
+    - packages/subagent/subagent-acp/
+    - packages/subagent/subagent-claude-code/
+    - packages/subagent/subagent-codex/
+    - packages/subagent/subagent-dsh-sdk/
+source_files: []
+depends_on: []
+related_to:
+    - path: python_sdk

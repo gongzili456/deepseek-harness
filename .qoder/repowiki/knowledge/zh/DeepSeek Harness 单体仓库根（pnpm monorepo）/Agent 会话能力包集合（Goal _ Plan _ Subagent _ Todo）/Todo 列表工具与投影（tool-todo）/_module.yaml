@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: packages_agent_features/todo_list
+title: Todo 列表工具与投影（tool-todo）
+scope:
+    - packages/todo/
+source_files: []
+depends_on: []
+related_to: []

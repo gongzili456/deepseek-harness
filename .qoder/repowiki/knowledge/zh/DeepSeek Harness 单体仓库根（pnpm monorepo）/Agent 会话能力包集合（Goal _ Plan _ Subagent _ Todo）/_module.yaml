@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_agent_features
+title: Agent 会话能力包集合（Goal / Plan / Subagent / Todo）
+scope:
+    - packages/goal/
+    - packages/plan/
+    - packages/subagent/
+    - packages/todo/
+source_files: []
+depends_on: []
+related_to: []

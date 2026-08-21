@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: packages_agent_features/planning
+title: Plan Mode 协作状态与审批插件
+scope:
+    - packages/plan/
+source_files: []
+depends_on: []
+related_to: []

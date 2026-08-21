@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: packages_agent_features/subagent_coordination/tool_packages
+title: 子代理工具包（委派/控制/报告）
+scope:
+    - packages/subagent/tool-subagent/
+    - packages/subagent/tool-subagent-control/
+    - packages/subagent/tool-subagent-report/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_agent_features/subagent_coordination/core_runtime

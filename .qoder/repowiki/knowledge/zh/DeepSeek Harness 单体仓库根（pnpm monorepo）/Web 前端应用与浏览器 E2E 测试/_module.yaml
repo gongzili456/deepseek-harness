@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: apps_web
+title: Web 前端应用与浏览器 E2E 测试
+scope:
+    - apps/web/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_core_runtime/host

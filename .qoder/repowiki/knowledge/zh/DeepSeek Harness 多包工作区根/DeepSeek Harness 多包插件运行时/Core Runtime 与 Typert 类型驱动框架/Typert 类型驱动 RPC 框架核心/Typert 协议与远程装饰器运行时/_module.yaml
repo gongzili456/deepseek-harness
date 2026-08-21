@@ -1,8 +1,0 @@
-schema_version: 1
-module_path: packages/core_runtime/typert/protocol
-title: Typert 协议与远程装饰器运行时
-scope:
-    - packages/typert/protocol/
-source_files: []
-depends_on: []
-related_to: []

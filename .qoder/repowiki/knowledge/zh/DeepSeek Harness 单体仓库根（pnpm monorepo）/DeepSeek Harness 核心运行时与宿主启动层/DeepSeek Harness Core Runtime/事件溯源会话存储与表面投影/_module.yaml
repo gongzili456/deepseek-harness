@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: packages_core_runtime/core_runtime/session_management
+title: 事件溯源会话存储与表面投影
+scope:
+    - packages/core/session/
+source_files: []
+depends_on: []
+related_to: []

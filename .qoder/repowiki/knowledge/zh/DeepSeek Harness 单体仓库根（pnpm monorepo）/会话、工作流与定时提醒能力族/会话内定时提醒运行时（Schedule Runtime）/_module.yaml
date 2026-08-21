@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_session_and_workflow/schedule_runtime
+title: 会话内定时提醒运行时（Schedule Runtime）
+scope:
+    - packages/schedule/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_session_and_workflow/session_core

@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: packages_llm_and_skills/skill_registry
+title: 技能注册中心与文件系统/工具集成
+scope:
+    - packages/skill/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_filesystem_and_shell/filesystem

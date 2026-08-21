@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: native_landlock
+title: Landlock 子进程沙箱启动器（landlock-run）
+scope:
+    - native/landlock-run/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_filesystem_and_shell/shell_execution

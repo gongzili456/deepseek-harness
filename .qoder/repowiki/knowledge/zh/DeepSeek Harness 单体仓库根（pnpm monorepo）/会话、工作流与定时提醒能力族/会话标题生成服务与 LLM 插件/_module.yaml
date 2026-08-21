@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: packages_session_and_workflow/session_title_providers
+title: 会话标题生成服务与 LLM 插件
+scope:
+    - packages/session/session-title/
+    - packages/session/session-title-all-prompts-llm/
+    - packages/session/session-title-first-prompt-llm/
+    - packages/session/session-title-llm/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_llm_and_skills/llm_core

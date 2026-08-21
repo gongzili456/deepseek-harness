@@ -1,0 +1,44 @@
+schema_version: 1
+module_path: ""
+title: DeepSeek Harness 单体仓库根（pnpm monorepo）
+scope:
+    - README.md
+    - CONTRIBUTING.md
+    - .gitignore
+    - package.json
+    - pnpm-workspace.yaml
+    - tsconfig.json
+    - vitest.config.ts
+    - .editorconfig
+    - .gitattributes
+    - .gitlab-ci.yml
+    - .jscpd.json
+    - .oxlintrc.json
+    - .oxlintrc.staged.json
+    - .rgignore
+    - AGENTS.md
+    - BENCHMARK.md
+    - CONTRIBUTING.i18n.yaml
+    - CONTRIBUTING.zh.md
+    - LICENSE
+    - README.i18n.yaml
+    - README.zh.md
+    - THIRD_PARTY_NOTICES.md
+    - knip.json
+    - lefthook.yml
+    - pnpm-lock.yaml
+    - pytest.ini
+    - tsconfig.base.client.json
+    - tsconfig.base.json
+    - tsconfig.client.json
+    - tsconfig.host.json
+    - tsdown.config.ts
+    - vitest.e2e.config.ts
+    - vitest.shared.ts
+    - vitest.snapshot.config.ts
+    - vitest.web-stress.config.ts
+    - vitest.web.config.ts
+    - vitest.web.perf.config.ts
+source_files: []
+depends_on: []
+related_to: []

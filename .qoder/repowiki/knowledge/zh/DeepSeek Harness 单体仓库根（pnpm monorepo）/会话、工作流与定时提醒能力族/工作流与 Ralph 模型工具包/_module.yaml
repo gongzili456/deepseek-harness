@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: packages_session_and_workflow/workflow_tools
+title: 工作流与 Ralph 模型工具包
+scope:
+    - packages/workflow/tool-workflow/
+    - packages/workflow/tool-ralph/
+source_files: []
+depends_on: []
+related_to:
+    - path: packages_session_and_workflow/workflow_orchestration
